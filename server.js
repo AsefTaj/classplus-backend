@@ -21,7 +21,7 @@ async function connectDB() {
     try {
         await client.connect();
         console.log("✅ MongoDB Connected Successfully!");
-        db = client.db("Classplus"); // ✅ Ensure database name matches Render settings
+        db = client.db("ClassPlus1"); // 
         lessons = db.collection("lesson");
         orders = db.collection("order"); // ✅ Now orders is initialized
     } catch (error) {
