@@ -21,7 +21,7 @@ async function connectDB() {
     try {
         await client.connect();
         console.log("✅ MongoDB Connected Successfully!");
-        db = client.db("classplus");
+        const db = client.db("Classplus"); // Match the exact database name as stored in MongoDB
         lessons = db.collection("lesson");
         orders = db.collection("order");
 
