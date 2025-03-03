@@ -1,16 +1,14 @@
 require('dotenv').config(); // Load environment variables
 const express = require('express');
-const { MongoClient } = require('mongodb');
 const cors = require('cors');
+const { MongoClient } = require('mongodb');
 
 const app = express();
 const PORT = process.env.PORT || 5001;
 
 // Middleware
-const cors = require("cors");
-app.use(cors());
+app.use(cors()); // ✅ Apply CORS only once
 app.use(express.json());
-app.use(cors());
 
 // Load MongoDB URI from .env file
 const MONGO_URI = process.env.MONGO_URI;
@@ -41,6 +39,7 @@ app.get('/lessons', async (req, res) => {
         const allLessons = await lessons.find().toArray();
         res.json(allLessons);
     } catch (error) {
+        console.error("❌ Error fetching lessons:", error);
         res.status(500).json({ error: "Failed to fetch lessons" });
     }
 });
@@ -52,6 +51,7 @@ app.post('/orders', async (req, res) => {
         await orders.insertOne(newOrder);
         res.json({ message: "✅ Order placed successfully!" });
     } catch (error) {
+        console.error("❌ Error placing order:", error);
         res.status(500).json({ error: "Failed to place order" });
     }
 });
