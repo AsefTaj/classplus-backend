@@ -1,71 +1,53 @@
-require('dotenv').config(); // Load environment variables
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { MongoClient } = require('mongodb');
 
 const app = express();
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 10000; // Ensure Render's PORT matches
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Load MongoDB URI from .env file
+// Load MongoDB URI
 const MONGO_URI = process.env.MONGO_URI;
 const client = new MongoClient(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
-let db, lessons, orders;
+let db, lessons;
 
-// Connect to MongoDB Atlas before running queries
+// Connect to MongoDB
 async function connectDB() {
     try {
         await client.connect();
         console.log("✅ MongoDB Connected Successfully!");
-        const db = client.db("Classplus"); // Match the exact database name as stored in MongoDB
+        db = client.db("Classplus"); // Ensure database name matches Render settings
         lessons = db.collection("lesson");
-        orders = db.collection("order");
-
-        // Ensure default lessons exist only after connection is successful
-        await ensureLessonsExist();
     } catch (error) {
         console.error("❌ MongoDB Connection Failed!", error);
-        process.exit(1); // Stop server if database connection fails
+        process.exit(1);
     }
 }
-
-// Ensure 10 lessons exist in MongoDB
-async function ensureLessonsExist() {
-    try {
-        const existingLessons = await lessons.countDocuments();
-        if (existingLessons === 0) {
-            console.log("⚠️ No lessons found, inserting default lessons...");
-            await lessons.insertMany([
-                { topic: "Mathematics", location: "New York", price: 100, spaces: 5 },
-                { topic: "English", location: "Los Angeles", price: 90, spaces: 5 },
-                { topic: "Physics", location: "Chicago", price: 120, spaces: 5 },
-                { topic: "Chemistry", location: "Houston", price: 110, spaces: 5 },
-                { topic: "Biology", location: "Miami", price: 105, spaces: 5 },
-                { topic: "Psychology", location: "San Francisco", price: 95, spaces: 5 },
-                { topic: "History", location: "Boston", price: 85, spaces: 5 },
-                { topic: "Music", location: "Seattle", price: 80, spaces: 5 },
-                { topic: "Geography", location: "Denver", price: 75, spaces: 5 },
-                { topic: "Finance", location: "Atlanta", price: 130, spaces: 5 }
-            ]);
-            console.log("✅ Default lessons inserted!");
-        }
-    } catch (error) {
-        console.error("❌ Error inserting default lessons:", error);
-    }
-}
-
-// Call this function to connect the database before handling requests
 connectDB();
 
-// API Routes
+// ✅ Test Root Route
+app.get('/', (req, res) => {
+    res.send("🎉 ClassPlus API is Running!");
+});
 
-// Get all lessons
+// ✅ Debugging Route
+app.get('/test', (req, res) => {
+    res.json({ message: "✅ Server is working!" });
+});
+
+// ✅ Get All Lessons Route
 app.get('/lessons', async (req, res) => {
+    console.log("📡 Received GET request on /lessons");
     try {
+        if (!db) {
+            console.log("❌ Database is not connected");
+            return res.status(500).json({ error: "Database not connected" });
+        }
         const allLessons = await lessons.find().toArray();
         res.json(allLessons);
     } catch (error) {
@@ -74,19 +56,5 @@ app.get('/lessons', async (req, res) => {
     }
 });
 
-// Create a new order
-app.post('/orders', async (req, res) => {
-    try {
-        if (!db) return res.status(500).json({ error: "Database not connected" });
-
-        const newOrder = req.body;
-        await orders.insertOne(newOrder);
-        res.json({ message: "✅ Order placed successfully!" });
-    } catch (error) {
-        console.error("❌ Error placing order:", error);
-        res.status(500).json({ error: "Failed to place order" });
-    }
-});
-
-// Start Express Server after DB connection
+// Start Express Server
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
