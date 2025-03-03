@@ -31,6 +31,34 @@ const db = client.db("classplus");
 const lessons = db.collection("lesson");
 const orders = db.collection("order");
 
+// Ensure 10 lessons exist in MongoDB
+async function ensureLessonsExist() {
+    try {
+        const existingLessons = await lessons.countDocuments();
+        if (existingLessons === 0) {
+            console.log("⚠️ No lessons found, inserting default lessons...");
+            await lessons.insertMany([
+                { topic: "Mathematics", location: "New York", price: 100, spaces: 5 },
+                { topic: "English", location: "Los Angeles", price: 90, spaces: 5 },
+                { topic: "Physics", location: "Chicago", price: 120, spaces: 5 },
+                { topic: "Chemistry", location: "Houston", price: 110, spaces: 5 },
+                { topic: "Biology", location: "Miami", price: 105, spaces: 5 },
+                { topic: "Psychology", location: "San Francisco", price: 95, spaces: 5 },
+                { topic: "History", location: "Boston", price: 85, spaces: 5 },
+                { topic: "Music", location: "Seattle", price: 80, spaces: 5 },
+                { topic: "Geography", location: "Denver", price: 75, spaces: 5 },
+                { topic: "Finance", location: "Atlanta", price: 130, spaces: 5 }
+            ]);
+            console.log("✅ Default lessons inserted!");
+        }
+    } catch (error) {
+        console.error("❌ Error inserting default lessons:", error);
+    }
+}
+
+// Call this function on server start
+ensureLessonsExist();
+
 // API Routes
 
 // Get all lessons
