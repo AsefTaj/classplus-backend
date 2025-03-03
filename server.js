@@ -14,15 +14,16 @@ app.use(express.json());
 const MONGO_URI = process.env.MONGO_URI;
 const client = new MongoClient(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
-let db, lessons;
+let db, lessons, orders; // ✅ Define orders collection
 
 // Connect to MongoDB
 async function connectDB() {
     try {
         await client.connect();
         console.log("✅ MongoDB Connected Successfully!");
-        db = client.db("Classplus"); // Ensure database name matches Render settings
+        db = client.db("Classplus"); // ✅ Ensure database name matches Render settings
         lessons = db.collection("lesson");
+        orders = db.collection("order"); // ✅ Now orders is initialized
     } catch (error) {
         console.error("❌ MongoDB Connection Failed!", error);
         process.exit(1);
@@ -56,10 +57,12 @@ app.get('/lessons', async (req, res) => {
     }
 });
 
-// ✅ Fetch all orders (for testing)
+// ✅ Fetch all orders
 app.get('/orders', async (req, res) => {
     try {
-        const allOrders = await orders.find().toArray();
+        console.log("📡 Received GET request on /orders");
+        const allOrders = await orders.find().toArray(); // ✅ Orders collection is now properly initialized
+        console.log("✅ Orders fetched:", allOrders);
         res.json(allOrders);
     } catch (error) {
         console.error("❌ Error fetching orders:", error);
