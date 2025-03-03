@@ -7,29 +7,31 @@ const app = express();
 const PORT = process.env.PORT || 5001;
 
 // Middleware
-app.use(cors()); // ✅ Apply CORS only once
+app.use(cors());
 app.use(express.json());
 
 // Load MongoDB URI from .env file
 const MONGO_URI = process.env.MONGO_URI;
 const client = new MongoClient(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
-// Connect to MongoDB Atlas
+let db, lessons, orders;
+
+// Connect to MongoDB Atlas before running queries
 async function connectDB() {
     try {
         await client.connect();
         console.log("✅ MongoDB Connected Successfully!");
+        db = client.db("classplus");
+        lessons = db.collection("lesson");
+        orders = db.collection("order");
+
+        // Ensure default lessons exist only after connection is successful
+        await ensureLessonsExist();
     } catch (error) {
         console.error("❌ MongoDB Connection Failed!", error);
         process.exit(1); // Stop server if database connection fails
     }
 }
-connectDB();
-
-// Database & Collections
-const db = client.db("classplus");
-const lessons = db.collection("lesson");
-const orders = db.collection("order");
 
 // Ensure 10 lessons exist in MongoDB
 async function ensureLessonsExist() {
@@ -56,14 +58,16 @@ async function ensureLessonsExist() {
     }
 }
 
-// Call this function on server start
-ensureLessonsExist();
+// Call this function to connect the database before handling requests
+connectDB();
 
 // API Routes
 
 // Get all lessons
 app.get('/lessons', async (req, res) => {
     try {
+        if (!db) return res.status(500).json({ error: "Database not connected" });
+
         const allLessons = await lessons.find().toArray();
         res.json(allLessons);
     } catch (error) {
@@ -75,6 +79,8 @@ app.get('/lessons', async (req, res) => {
 // Create a new order
 app.post('/orders', async (req, res) => {
     try {
+        if (!db) return res.status(500).json({ error: "Database not connected" });
+
         const newOrder = req.body;
         await orders.insertOne(newOrder);
         res.json({ message: "✅ Order placed successfully!" });
@@ -84,5 +90,5 @@ app.post('/orders', async (req, res) => {
     }
 });
 
-// Start Express Server
+// Start Express Server after DB connection
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
