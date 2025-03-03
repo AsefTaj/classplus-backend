@@ -56,5 +56,16 @@ app.get('/lessons', async (req, res) => {
     }
 });
 
+// ✅ Fetch all orders (for testing)
+app.get('/orders', async (req, res) => {
+    try {
+        const allOrders = await orders.find().toArray();
+        res.json(allOrders);
+    } catch (error) {
+        console.error("❌ Error fetching orders:", error);
+        res.status(500).json({ error: "Failed to fetch orders" });
+    }
+});
+
 // Start Express Server
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
