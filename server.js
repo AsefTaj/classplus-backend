@@ -66,8 +66,6 @@ connectDB();
 // Get all lessons
 app.get('/lessons', async (req, res) => {
     try {
-        if (!db) return res.status(500).json({ error: "Database not connected" });
-
         const allLessons = await lessons.find().toArray();
         res.json(allLessons);
     } catch (error) {
